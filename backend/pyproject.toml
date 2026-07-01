@@ -1,0 +1,88 @@
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lost-found-api"
+version = "1.0.0"
+description = "AI Lost & Found System Backend"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+    {name = "Lost & Found Team", email = "team@lostfound.app"}
+]
+
+dependencies = [
+    "fastapi==0.104.1",
+    "uvicorn[standard]==0.24.0",
+    "sqlalchemy==2.0.23",
+    "psycopg2-binary==2.9.9",
+    "asyncpg==0.29.0",
+    "pydantic==2.5.0",
+    "pydantic-settings==2.1.0",
+    "pydantic[email]==2.5.0",
+    "python-jose[cryptography]==3.3.0",
+    "passlib[bcrypt]==1.7.4",
+    "bcrypt==3.2.2",
+    "pillow==10.1.0",
+    "requests==2.31.0",
+    "minio==7.2.0",
+    "pgvector==0.2.4",
+    "alembic==1.13.1",
+    "python-multipart==0.0.6",
+    "python-dotenv==1.0.0",
+    "aiofiles==23.2.1",
+]
+
+[project.optional-dependencies]
+ml = [
+    "open-clip-torch==2.20.0",
+    "sentence-transformers==2.2.2",
+]
+dev = [
+    "pytest==7.4.3",
+    "pytest-asyncio==0.21.1",
+    "pytest-cov==4.1.0",
+    "black==23.12.0",
+    "ruff==0.1.11",
+    "mypy==1.7.0",
+    "types-python-jose==3.3.0",
+    "types-requests==2.31.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+# Python code formatting configuration for Black
+[tool.black]
+line-length = 100
+target-version = ['py311']
+include = '\.pyi?$'
+
+# Ruff linter configuration
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "C",    # flake8-comprehensions
+    "B",    # flake8-bugbear
+]
+
+[tool.ruff.isort]
+known-first-party = ["app"]
+
+# Mypy configuration
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+check_untyped_defs = true
+
+# Pytest configuration
+[tool.pytest.ini_options]
+testpaths = ["app/tests"]
+asyncio_mode = "auto"

@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: Inter, sans-serif;
+  }
+
+  body {
+    @apply bg-white text-gray-900;
+  }
+
+  h1 {
+    @apply text-3xl font-bold;
+  }
+
+  h2 {
+    @apply text-2xl font-bold;
+  }
+
+  h3 {
+    @apply text-xl font-semibold;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-xl shadow-sm border border-gray-200 bg-white p-6;
+  }
+
+  .btn-primary {
+    @apply bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-200 text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors;
+  }
+
+  .input-base {
+    @apply w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-600;
+  }
+}
+
+/* PrimeReact theme overrides */
+:root {
+  --primary-color: #2563eb;
+  --primary-color-emphasis: #1d4ed8;
+  --text-color: #1f2937;
+  --text-color-secondary: #6b7280;
+  --surface-border: #e5e7eb;
+  --surface-ground: #ffffff;
+  --border-radius: 0.75rem;
+}
+
+.p-component {
+  font-family: Inter, sans-serif;
+}
