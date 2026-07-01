@@ -2,255 +2,242 @@
 
 ระบบจัดการของหาย-ของพบ พร้อม AI จับคู่อัตโนมัติจากรูปภาพและข้อความ
 
-An AI-powered system for matching lost and found items with automatic image and text analysis.
+An AI-powered system for matching lost and found items using CLIP image embeddings and Sentence Transformer text embeddings.
 
 ## Overview
 
-This system helps organizations (schools, universities, hotels, co-working spaces) automatically match lost items with found items using AI image embeddings (CLIP) and text embeddings (Sentence Transformers).
+This system helps organizations (schools, universities, hotels, co-working spaces) automatically match lost items with found items using AI.
 
 ### Key Features
 
-- **User Lost Item Reporting**: Upload item details and photos
-- **Staff Found Item Recording**: Log found items with photos
-- **AI Automatic Matching**: CLIP image embeddings + Sentence Transformers text embeddings
-- **Smart Notifications**: Email + in-app notifications for matches
-- **Claim Management**: Users claim found items, staff approves returns
-- **Admin Dashboard**: Statistics and monitoring
+- **User Lost Item Reporting** — Submit lost item details with photos
+- **Staff Found Item Recording** — Log found items with photos
+- **AI Automatic Matching** — CLIP (512-dim) image embeddings + Sentence Transformers (384-dim) text embeddings stored in pgvector
+- **Smart Notifications** — In-app notifications for matches
+- **Claim Management** — Users claim found items, staff approves returns
+- **Admin Dashboard** — Statistics and user management
+- **JWT Authentication** — Secure login with access + refresh tokens
+
+## Implementation Status
+
+| Feature | Status |
+|---|---|
+| Docker infrastructure (frontend, backend, postgres, minio) | ✅ Complete |
+| PostgreSQL + pgvector extension | ✅ Complete |
+| Database schema (6 tables) | ✅ Complete |
+| User authentication (register / login / refresh) | ✅ Complete |
+| Lost items CRUD API | ✅ Complete |
+| Found items CRUD API | 🔜 Planned |
+| AI matching pipeline (CLIP + Sentence Transformers) | 🔜 Planned |
+| Claim workflow API | 🔜 Planned |
+| Notifications API | 🔜 Planned |
+| Frontend pages (7 pages) | ✅ Complete |
+| Frontend ↔ Backend integration | 🔄 In Progress |
 
 ## Tech Stack
 
 ### Frontend
-- React + TypeScript
-- Vite
-- PrimeReact
-- Tailwind CSS
-- React Query
-- React Router
+- React 18 + TypeScript (strict mode)
+- Vite 5
+- PrimeReact 10 (UI components)
+- Tailwind CSS 3
+- TanStack React Query 5
+- React Router v6
+- Axios with JWT interceptor
+- Tabler Icons
 
 ### Backend
-- FastAPI
-- SQLAlchemy + PostgreSQL
-- pgvector (vector similarity search)
+- Python 3.11 + FastAPI 0.104
+- SQLAlchemy 2.0 (async) + asyncpg
+- PostgreSQL 15 + pgvector 0.5
 - Pydantic V2
-- JWT Authentication
-- MinIO (image storage)
-- CLIP + Sentence Transformers (AI embeddings)
+- JWT (python-jose + passlib/bcrypt)
+- MinIO (S3-compatible image storage)
+- CLIP + Sentence Transformers *(embeddings — planned)*
 
 ### Infrastructure
 - Docker + Docker Compose
-- PostgreSQL 15
-- MinIO S3-compatible storage
+- 4-service orchestration on custom bridge network
+- Multi-stage frontend build (Node 18-alpine)
+- Health checks on postgres and minio
+
+## Database Schema
+
+| Table | Description |
+|---|---|
+| `user` | Accounts with roles (user / staff / admin) |
+| `lost_item` | Lost items with pgvector embeddings |
+| `found_item` | Found items recorded by staff |
+| `match` | AI scores: image_score, text_score, combined_score |
+| `claim_request` | Ownership claim workflow |
+| `notification` | In-app notifications |
+
+## API Endpoints
+
+### Authentication
+| Method | Path | Description |
+|---|---|---|
+| POST | `/api/auth/register` | Register new user |
+| POST | `/api/auth/login` | Login, returns JWT tokens |
+| POST | `/api/auth/refresh` | Refresh access token |
+
+### Lost Items
+| Method | Path | Description |
+|---|---|---|
+| POST | `/api/lost-items/` | Report lost item |
+| GET | `/api/lost-items/` | List (own items for users, all for staff/admin) |
+| GET | `/api/lost-items/{id}` | Get item details |
+| PUT | `/api/lost-items/{id}` | Update item |
+| DELETE | `/api/lost-items/{id}` | Delete item |
+
+Full interactive docs: **http://localhost:8000/docs**
 
 ## Project Structure
 
 ```
-lost-and-found/
-├── frontend/                 # React + TypeScript frontend
+lostAndFound/
+├── frontend/
 │   ├── src/
-│   │   ├── components/      # React components
-│   │   ├── pages/           # Page components
-│   │   ├── hooks/           # Custom React hooks
-│   │   ├── context/         # Context API
-│   │   ├── services/        # API client
-│   │   ├── types/           # TypeScript types
-│   │   └── styles/          # Global styles
-│   ├── public/              # Static assets
-│   ├── package.json
+│   │   ├── components/      # Layout, ProtectedRoute, common UI
+│   │   ├── pages/           # Dashboard, LostItems, FoundItems, Matches, Claims, Notifications, Admin
+│   │   ├── hooks/           # useApi (React Query hooks)
+│   │   ├── context/         # AuthContext (JWT + localStorage)
+│   │   ├── services/        # api.ts (Axios client)
+│   │   └── types/           # Shared TypeScript types
 │   ├── vite.config.ts
 │   ├── tsconfig.json
-│   ├── tailwind.config.ts
-│   └── .env.example
+│   └── Dockerfile.frontend
 │
-├── backend/                 # FastAPI backend
+├── backend/
 │   ├── app/
-│   │   ├── models/          # SQLAlchemy models
-│   │   ├── schemas/         # Pydantic schemas
-│   │   ├── routes/          # API routes
-│   │   ├── services/        # Business logic
-│   │   ├── utils/           # Utilities
-│   │   ├── tests/           # Unit tests
-│   │   ├── main.py          # FastAPI app
-│   │   ├── config.py        # Settings
-│   │   ├── database.py      # DB setup
-│   │   └── dependencies.py  # Dependency injection
-│   ├── alembic/             # Database migrations
-│   ├── pyproject.toml
-│   └── .env.example
+│   │   ├── models/          # User, LostItem, FoundItem, Match, ClaimRequest, Notification
+│   │   ├── schemas/         # Pydantic V2 request/response schemas
+│   │   ├── routes/          # auth.py, lost_items.py
+│   │   ├── services/        # auth.py (JWT, bcrypt)
+│   │   ├── dependencies.py  # get_current_user, require_staff, require_admin
+│   │   ├── main.py          # FastAPI app factory + startup
+│   │   ├── config.py        # Pydantic Settings
+│   │   └── database.py      # Async engine + init_db()
+│   ├── alembic/
+│   └── pyproject.toml
 │
-├── docker/                  # Docker configuration
+├── docker/
 │   ├── Dockerfile.backend
 │   ├── Dockerfile.frontend
-│   └── init-postgres.sql    # PostgreSQL init script
+│   └── Dockerfile.postgres   # PostgreSQL 15 + pgvector built from source
 │
-├── docker-compose.yml       # Docker Compose orchestration
-├── .env.example             # Root environment template
-└── README.md                # This file
+├── docker-compose.yml
+├── .env.example
+└── README.md
 ```
 
-## Getting Started
+## Quick Start
 
 ### Prerequisites
-
 - Docker & Docker Compose
-- Node.js 18+ (for local development)
-- Python 3.11+ (for backend development)
 
-### Quick Start with Docker
+### Start with Docker
 
 ```bash
-# 1. Copy environment file
+# 1. Clone and configure
+git clone https://github.com/kiwabc123/LostAndFound.git
+cd LostAndFound
 cp .env.example .env
 
 # 2. Start all services
 docker-compose up -d
 
-# 3. Access the application
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8000
-- MinIO: http://localhost:9001 (credentials in .env)
-- API Docs: http://localhost:8000/docs
+# 3. Access
+# Frontend:   http://localhost:3000
+# API:        http://localhost:8000
+# API Docs:   http://localhost:8000/docs
+# MinIO UI:   http://localhost:9001
 ```
 
-### Local Development
+### Demo Credentials
 
-#### Backend Setup
+| Role | Username | Password |
+|---|---|---|
+| Admin | `admin` | `admin1234` |
+
+> Register new users at `POST /api/auth/register` or through the login page.
+
+## Local Development
+
+### Backend
 
 ```bash
 cd backend
-
-# Create virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
+venv\Scripts\activate        # Windows
 pip install -e ".[dev]"
-
-# Copy environment file
-cp .env.example .env
-
-# Run migrations
-alembic upgrade head
-
-# Start server
+cp .env.example .env         # set DATABASE_URL to localhost
 uvicorn app.main:app --reload
 ```
 
-#### Frontend Setup
+### Frontend
 
 ```bash
 cd frontend
-
-# Install dependencies
 npm install
-
-# Copy environment file
-cp .env.example .env
-
-# Start dev server
+cp .env.example .env         # set VITE_API_BASE_URL=http://localhost:8000/api
 npm run dev
-```
-
-## API Documentation
-
-Once the backend is running, view the interactive API documentation at:
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
-
-## Database
-
-### Migrations
-
-Run Alembic migrations:
-
-```bash
-cd backend
-alembic upgrade head
-```
-
-Create a new migration:
-
-```bash
-alembic revision --autogenerate -m "Description of changes"
-```
-
-## Testing
-
-### Backend Tests
-
-```bash
-cd backend
-pytest tests/ --cov=app --cov-report=term
-```
-
-### Frontend Tests
-
-```bash
-cd frontend
-npm run test
 ```
 
 ## Environment Variables
 
-See `.env.example` files in root, `frontend/`, and `backend/` directories for all required environment variables.
+Key variables (see `.env.example` for full list):
 
-### Key Variables
-
-**Backend:**
-- `DATABASE_URL`: PostgreSQL connection string
-- `JWT_SECRET_KEY`: Secret key for JWT tokens
-- `MINIO_*`: MinIO configuration
-- `SMTP_*`: Email configuration
-
-**Frontend:**
-- `VITE_API_BASE_URL`: Backend API URL
+| Variable | Description |
+|---|---|
+| `DATABASE_URL` | `postgresql+asyncpg://user:pass@postgres:5432/db` |
+| `JWT_SECRET_KEY` | Secret key for signing JWT tokens (min 32 chars) |
+| `MINIO_ENDPOINT` | MinIO URL (e.g. `http://minio:9000`) |
+| `VITE_API_BASE_URL` | Frontend → Backend URL |
 
 ## User Roles
 
-1. **User**: Report lost items, browse found items, claim found items
-2. **Staff**: Record found items, manage claims, approve returns
-3. **Admin**: User management, dashboard, statistics
+| Role | Permissions |
+|---|---|
+| **user** | Report lost items, browse found items, submit claims |
+| **staff** | All user permissions + record found items, manage claims |
+| **admin** | All permissions + user management, dashboard statistics |
 
-## Development Workflow
+## Docker Commands
 
-1. Create feature branch: `git checkout -b feature/feature-name`
-2. Make changes and commit: `git commit -m "Describe changes"`
-3. Push to remote: `git push origin feature/feature-name`
-4. Create Pull Request on GitHub
-5. Get code review and merge
+```bash
+docker-compose up -d                    # Start all services
+docker-compose down                     # Stop all services
+docker-compose up -d backend --build    # Rebuild and restart backend
+docker-compose logs -f backend          # View backend logs
+docker-compose exec -T postgres psql -U lostfound_user -d lostfound_db  # DB shell
+```
+
+## Testing
+
+```bash
+# Backend
+cd backend && pytest tests/ --cov=app
+
+# Frontend
+cd frontend && npm run test
+```
 
 ## Code Quality
 
-### Frontend
-- ESLint + Prettier
-- TypeScript strict mode
-- React component tests
+```bash
+# Backend
+black app && ruff check app --fix && mypy app
 
-### Backend
-- Black code formatter
-- Ruff linter
-- mypy type checking
-- Unit tests with pytest
-
-## Deployment
-
-See [Deployment Guide](./DEPLOYMENT.md) for production deployment instructions.
-
-## Contributing
-
-1. Follow code style guidelines (see above)
-2. Write tests for new features
-3. Update documentation
-4. Create descriptive commit messages
+# Frontend
+npm run lint && npm run format
+```
 
 ## License
 
-MIT License - see LICENSE file for details
-
-## Support
-
-For issues and questions, please open a GitHub Issue or contact the development team.
+MIT License
 
 ---
 
-**Last Updated**: 2026-06-22
-**MVP Version**: 1.0
+**Last Updated**: 2026-07-01
+**Version**: 1.0.0-mvp
