@@ -1,13 +1,16 @@
 import React, { useState } from 'react'
-import { useFoundItems } from '@/hooks/useApi'
+import { useLostItems, useFoundItems } from '@/hooks/useApi'
 import { LoadingSpinner, EmptyState, ItemCard } from '@/components/common'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '@/hooks/useAuth'
 import { FoundItem } from '@/types'
 
 export const FoundItems: React.FC = () => {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [page, setPage] = useState(1)
   const { data, isLoading } = useFoundItems(page, 12)
+  const isStaff = user?.role === 'staff' || user?.role === 'admin'
 
   return (
     <div className="space-y-6">
@@ -18,6 +21,14 @@ export const FoundItems: React.FC = () => {
             Browse items that have been found
           </p>
         </div>
+        {isStaff && (
+          <button
+            onClick={() => navigate('/found-items/record')}
+            className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+          >
+            Record Found Item
+          </button>
+        )}
       </div>
 
       {isLoading ? (

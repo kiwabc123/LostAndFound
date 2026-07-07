@@ -62,7 +62,7 @@ class ApiClient {
 
   // Lost Items
   async getLostItems(page = 1, limit = 10): Promise<PaginatedResponse<LostItem>> {
-    const { data } = await this.client.get('/lost-items', {
+    const { data } = await this.client.get('/lost-items/', {
       params: { page, limit },
     })
     return data
@@ -74,7 +74,7 @@ class ApiClient {
   }
 
   async createLostItem(item: Omit<LostItem, 'id' | 'created_at' | 'updated_at'>): Promise<LostItem> {
-    const { data } = await this.client.post('/lost-items', item)
+    const { data } = await this.client.post('/lost-items/', item)
     return data
   }
 
@@ -89,7 +89,7 @@ class ApiClient {
 
   // Found Items
   async getFoundItems(page = 1, limit = 10): Promise<PaginatedResponse<FoundItem>> {
-    const { data } = await this.client.get('/found-items', {
+    const { data } = await this.client.get('/found-items/', {
       params: { page, limit },
     })
     return data
@@ -101,13 +101,13 @@ class ApiClient {
   }
 
   async createFoundItem(item: Omit<FoundItem, 'id' | 'created_at' | 'updated_at'>): Promise<FoundItem> {
-    const { data } = await this.client.post('/found-items', item)
+    const { data } = await this.client.post('/found-items/', item)
     return data
   }
 
   // Matches
   async getMatches(page = 1, limit = 10): Promise<PaginatedResponse<Match>> {
-    const { data } = await this.client.get('/matches', {
+    const { data } = await this.client.get('/matches/', {
       params: { page, limit },
     })
     return data
@@ -120,14 +120,14 @@ class ApiClient {
 
   // Claims
   async getClaims(page = 1, limit = 10): Promise<PaginatedResponse<ClaimRequest>> {
-    const { data } = await this.client.get('/claims', {
+    const { data } = await this.client.get('/claims/', {
       params: { page, limit },
     })
     return data
   }
 
   async createClaim(foundItemId: string): Promise<ClaimRequest> {
-    const { data } = await this.client.post('/claims', { found_item_id: foundItemId })
+    const { data } = await this.client.post('/claims/', { found_item_id: foundItemId })
     return data
   }
 

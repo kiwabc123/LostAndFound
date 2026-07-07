@@ -1,3 +1,4 @@
+import logging
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -6,6 +7,7 @@ from app.database import get_db_session
 from app.models import User
 from app.services.auth import auth_service
 
+logger = logging.getLogger(__name__)
 security = HTTPBearer()
 
 
@@ -16,23 +18,27 @@ async def get_current_user(
     """Get current authenticated user from JWT token."""
     token = credentials.credentials
     user_id = auth_service.verify_token(token)
-    
+    logger.debug("verify_token result: %s", user_id)
+
     if not user_id:
+        logger.warning("Token verification failed (invalid/expired)")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
-    
+    logger.debug("User lookup for id=%s: found=%s active=%s", user_id, user is not None, getattr(user, 'is_active', None))
+
     if not user or not user.is_active:
+        logger.warning("User not found or inactive for id=%s", user_id)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found or inactive",
         )
-    
+
     return user
 
 

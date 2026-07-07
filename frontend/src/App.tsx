@@ -6,7 +6,10 @@ import { ProtectedRoute, Layout } from '@/components'
 import {
   Dashboard,
   LostItems,
+  LostItemDetail,
+  ReportLostItem,
   FoundItems,
+  RecordFoundItem,
   Matches,
   Claims,
   Settings,
@@ -27,7 +30,10 @@ function App() {
               <Route element={<Layout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/lost-items" element={<LostItems />} />
+                <Route path="/lost-items/report" element={<ReportLostItem />} />
+                <Route path="/lost-items/:id" element={<LostItemDetail />} />
                 <Route path="/found-items" element={<FoundItems />} />
+                <Route path="/found-items/record" element={<RecordFoundItem />} />
                 <Route path="/matches" element={<Matches />} />
                 <Route path="/claims" element={<Claims />} />
                 <Route path="/settings" element={<Settings />} />

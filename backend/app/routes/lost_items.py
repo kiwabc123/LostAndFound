@@ -34,7 +34,7 @@ async def create_lost_item(
         item_name=request.item_name,
         description=request.description,
         location=request.location,
-        date_lost=request.date_lost,
+        date_lost=request.date_lost.replace(tzinfo=None),
         status="lost",
     )
     db.add(item)
